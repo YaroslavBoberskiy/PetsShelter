@@ -2,10 +2,10 @@ package com.example.android.pets.data;
 
 import android.provider.BaseColumns;
 
-public final class DataBaseContract {
+public final class DbContract {
     private static final String TAG = "DataBase";
 
-    private DataBaseContract() {}
+    private DbContract() {}
 
     public static final class PetsEntry implements BaseColumns {
         public static final String TABLE_NAME = "pets";
