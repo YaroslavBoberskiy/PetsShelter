@@ -15,8 +15,9 @@
  */
 package com.example.android.pets;
 
+import android.content.ContentUris;
 import android.content.ContentValues;
-import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
@@ -32,7 +33,6 @@ import android.widget.Toast;
 
 import com.example.android.pets.data.DbContract;
 import com.example.android.pets.data.DbContract.PetsEntry;
-import com.example.android.pets.data.PetsDbHelper;
 
 /**
  * Allows user to create a new pet or edit an existing one.
@@ -116,9 +116,6 @@ public class EditorActivity extends AppCompatActivity {
         int petGender = mGender;
         int petWeight = Integer.parseInt(mWeightEditText.getText().toString().trim());
 
-        PetsDbHelper mDbHelper = new PetsDbHelper(this);
-        // Gets the data repository in write mode
-        SQLiteDatabase db = mDbHelper.getWritableDatabase();
         // Create a new map of values, where column names are the keys
         ContentValues values = new ContentValues();
         values.put(DbContract.PetsEntry.COLUMN_PET_NAME, petName);
@@ -127,7 +124,15 @@ public class EditorActivity extends AppCompatActivity {
         values.put(DbContract.PetsEntry.COLUMN_PET_WEIGHT, petWeight);
 
         // Insert the new row, returning the primary key value of the new row
-        long newRowId = db.insert(DbContract.PetsEntry.TABLE_NAME, null, values);
+        //long newRowId = db.insert(DbContract.PetsEntry.TABLE_NAME, null, values);
+
+
+        Uri mNewUri;
+        mNewUri = getContentResolver().insert(
+                PetsEntry.CONTENT_URI,   // the user dictionary content URI
+                values);                 // the values to insert
+
+        long newRowId = ContentUris.parseId(mNewUri);
 
         if (newRowId == -1) {
             Toast.makeText(this, "Error with saving pet in DB", Toast.LENGTH_SHORT).show();
