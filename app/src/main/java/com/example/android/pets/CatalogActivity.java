@@ -26,14 +26,13 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.example.android.pets.data.DbContract;
-import com.example.android.pets.data.PetsDbHelper;
 
 /**
  * Displays list of pets that were entered and stored in the app.
  */
 public class CatalogActivity extends AppCompatActivity {
 
-    private PetsDbHelper mDbHelper;
+    //private PetsDbHelper mDbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +41,8 @@ public class CatalogActivity extends AppCompatActivity {
 
         // To access our database, we instantiate our subclass of SQLiteOpenHelper
         // and pass the context, which is the current activity.
-        mDbHelper = new PetsDbHelper(this);
+        /* nDbHelper was used with direct access to DB */
+        //mDbHelper = new PetsDbHelper(this);
 
         // Setup FAB to open EditorActivity
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -53,8 +53,6 @@ public class CatalogActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-
-
     }
 
     @Override

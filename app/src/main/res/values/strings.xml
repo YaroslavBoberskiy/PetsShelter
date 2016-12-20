@@ -58,4 +58,13 @@
 
     <!-- Label for dropdown menu option if the pet is female [CHAR LIMIT=20] -->
     <string name="gender_female">Female</string>
+
+    <string name="error_saving_pet_in_db">Error with saving pet in DB</string>
+
+    <string name="success_saving_pet_in_db">Pet saved with ID: </string>
+
+    <string name="unknown_uri_query">Cannot query unknown URI </string>
+
+    <string name="insertion_not_supported_for_uri">Insertion is not supported for </string>
+
 </resources>

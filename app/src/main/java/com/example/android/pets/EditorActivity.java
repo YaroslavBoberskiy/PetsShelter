@@ -126,18 +126,33 @@ public class EditorActivity extends AppCompatActivity {
         // Insert the new row, returning the primary key value of the new row
         //long newRowId = db.insert(DbContract.PetsEntry.TABLE_NAME, null, values);
 
+        String nameCheck = values.getAsString(PetsEntry.COLUMN_PET_NAME);
+        String breedCheck = values.getAsString(PetsEntry.COLUMN_PET_BREED);
+        int weightCheck = values.getAsInteger(PetsEntry.COLUMN_PET_WEIGHT);
 
-        Uri mNewUri;
-        mNewUri = getContentResolver().insert(
+        if (nameCheck == null) {
+            throw new IllegalArgumentException("Pet requires a name");
+        }
+
+        if (breedCheck == null) {
+            throw new IllegalArgumentException("Pet requires a breed");
+        }
+
+        if (weightCheck <= 0) {
+            throw new IllegalArgumentException("Weight can't be \"0\" or negative");
+        }
+
+        Uri mNewPetUri = getContentResolver().insert(
                 PetsEntry.CONTENT_URI,   // the user dictionary content URI
                 values);                 // the values to insert
 
-        long newRowId = ContentUris.parseId(mNewUri);
+        long newRowId = ContentUris.parseId(mNewPetUri);
 
         if (newRowId == -1) {
-            Toast.makeText(this, "Error with saving pet in DB", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.error_saving_pet_in_db, Toast.LENGTH_SHORT).show();
         } else {
-            Toast.makeText(this, "Pet saved with ID: " + newRowId, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.success_saving_pet_in_db + "" +
+                    newRowId, Toast.LENGTH_SHORT).show();
         }
     }
 
