@@ -23,7 +23,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.TextView;
+import android.widget.ListView;
 
 import com.example.android.pets.data.DbContract;
 
@@ -67,9 +67,6 @@ public class CatalogActivity extends AppCompatActivity {
      */
     private void displayDatabaseInfo() {
 
-        // Create and/or open a database to read from it
-        //SQLiteDatabase db = mDbHelper.getReadableDatabase();
-
         String projection [] = {
                 DbContract.PetsEntry._ID,
                 DbContract.PetsEntry.COLUMN_PET_NAME,
@@ -77,23 +74,6 @@ public class CatalogActivity extends AppCompatActivity {
                 DbContract.PetsEntry.COLUMN_PET_GENDER,
                 DbContract.PetsEntry.COLUMN_PET_WEIGHT
         };
-
-        // Perform this raw SQL query "SELECT * FROM pets"
-        // to get a Cursor that contains all rows from the pets table.
-
-        /** Interacting with DB directly
-        Cursor cursor = db.query(
-                DbContract.PetsEntry.TABLE_NAME,          // The table to query
-                projection,                               // The columns to return
-                null,                                     // The columns for the WHERE clause
-                null,                                     // The values for the WHERE clause
-                null,                                     // don't group the rows
-                null,                                     // don't filter by row groups
-                null                                      // The sort order
-        );
-
-         **/
-
 
         /** Interacting with DB using ContentResolver **/
         Cursor cursor = getContentResolver().query(
@@ -103,39 +83,12 @@ public class CatalogActivity extends AppCompatActivity {
                 null,
                 null
         );
-
-        try {
-            // Display the number of rows in the Cursor (which reflects the number of rows in the
-            // pets table in the database).
-            TextView displayView = (TextView) findViewById(R.id.text_view_pet);
-            displayView.setText("The pets table contains " + cursor.getCount() + " pets. \n");
-            displayView.append(DbContract.PetsEntry._ID +
-                    " - " + DbContract.PetsEntry.COLUMN_PET_NAME +
-                    " - " + DbContract.PetsEntry.COLUMN_PET_BREED +
-                    " - " + DbContract.PetsEntry.COLUMN_PET_GENDER +
-                    " - " + DbContract.PetsEntry.COLUMN_PET_WEIGHT + "\n");
-
-            int idColumnIdx = cursor.getColumnIndex(DbContract.PetsEntry._ID);
-            int nameColumnIdx = cursor.getColumnIndex(DbContract.PetsEntry.COLUMN_PET_NAME);
-            int breedColumnIdx = cursor.getColumnIndex(DbContract.PetsEntry.COLUMN_PET_BREED);
-            int genderColumnIdx = cursor.getColumnIndex(DbContract.PetsEntry.COLUMN_PET_GENDER);
-            int weightColumnIdx = cursor.getColumnIndex(DbContract.PetsEntry.COLUMN_PET_WEIGHT);
-
-            while (cursor.moveToNext()) {
-                int _id = cursor.getInt(idColumnIdx);
-                String name = cursor.getString(nameColumnIdx);
-                String breed = cursor.getString(breedColumnIdx);
-                int gender = cursor.getInt(genderColumnIdx);
-                int weight = cursor.getInt(weightColumnIdx);
-
-                displayView.append(_id+" - "+name+" - "+breed+" - "+gender+" - "+weight + "\n");
-            }
-
-        } finally {
-            // Always close the cursor when you're done reading from it. This releases all its
-            // resources and makes it invalid.
-            cursor.close();
-        }
+            // Find ListView to populate
+            ListView lvItems = (ListView) findViewById(R.id.list_view_pet);
+            // Setup cursor adapter using cursor from last step
+            PetCursorAdapter petAdapter = new PetCursorAdapter(this, cursor);
+            // Attach cursor adapter to the ListView
+            lvItems.setAdapter(petAdapter);
     }
 
     @Override
