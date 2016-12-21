@@ -53,6 +53,13 @@ public class CatalogActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+        // Find the ListView which will be populated with the pet data
+        ListView petListView = (ListView) findViewById(R.id.list_view_pet);
+
+        // Find and set empty view on the ListView, so that it only shows when the list has 0 items.
+        View emptyView = findViewById(R.id.empty_view);
+        petListView.setEmptyView(emptyView);
     }
 
     @Override
@@ -84,11 +91,11 @@ public class CatalogActivity extends AppCompatActivity {
                 null
         );
             // Find ListView to populate
-            ListView lvItems = (ListView) findViewById(R.id.list_view_pet);
+            ListView petListView = (ListView) findViewById(R.id.list_view_pet);
             // Setup cursor adapter using cursor from last step
             PetCursorAdapter petAdapter = new PetCursorAdapter(this, cursor);
             // Attach cursor adapter to the ListView
-            lvItems.setAdapter(petAdapter);
+            petListView.setAdapter(petAdapter);
     }
 
     @Override
