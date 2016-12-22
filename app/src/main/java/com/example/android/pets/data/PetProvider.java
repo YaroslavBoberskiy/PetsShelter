@@ -7,6 +7,7 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.util.Log;
 
 import com.example.android.pets.R;
 
@@ -80,6 +81,7 @@ public class PetProvider extends ContentProvider {
             default:
                 throw new IllegalArgumentException(R.string.unknown_uri_query + "" + uri);
         }
+        cursor.setNotificationUri(getContext().getContentResolver(), DbContract.PetsEntry.CONTENT_URI);
         return cursor;
     }
 
@@ -130,14 +132,22 @@ public class PetProvider extends ContentProvider {
         final int match = sUriMatcher.match(uri);
         switch (match) {
             case PETS:
-                return database.delete(DbContract.PetsEntry.TABLE_NAME, selection, selectionArgs);
+                int delCount = database.delete(DbContract.PetsEntry.TABLE_NAME, selection, selectionArgs);
+                if (delCount > 0) {
+                    getContext().getContentResolver().notifyChange(uri, null);
+                }
+                return delCount;
             case PETS_ID:
                 // For the PET_ID code, extract out the ID from the URI,
                 // so we know which row to update. Selection will be "_id=?" and selection
                 // arguments will be a String array containing the actual ID.
                 selection = DbContract.PetsEntry._ID + "=?";
                 selectionArgs = new String[] { String.valueOf(ContentUris.parseId(uri)) };
-                return database.delete(DbContract.PetsEntry.TABLE_NAME, selection, selectionArgs);
+                int delCountId = database.delete(DbContract.PetsEntry.TABLE_NAME, selection, selectionArgs);
+                if (delCountId > 0) {
+                    getContext().getContentResolver().notifyChange(uri, null);
+                }
+                return delCountId;
             default:
                 throw new IllegalArgumentException("Delete is not supported for " + uri);
         }
@@ -160,8 +170,44 @@ public class PetProvider extends ContentProvider {
     }
 
     private Uri insertPet(Uri uri, ContentValues values) {
+        // check that the name value is not null.
+        if (values.containsKey(DbContract.PetsEntry.COLUMN_PET_NAME)) {
+            String name = values.getAsString(DbContract.PetsEntry.COLUMN_PET_NAME);
+            if (name == null) {
+                throw new IllegalArgumentException("Pet requires a name");
+            }
+        }
+
+        // If the COLUMN_PET_GENDER key is present,
+        // check that the gender value is valid.
+        if (values.containsKey(DbContract.PetsEntry.COLUMN_PET_GENDER)) {
+            Integer gender = values.getAsInteger(DbContract.PetsEntry.COLUMN_PET_GENDER);
+            if (gender == null) {
+                throw new IllegalArgumentException("Pet requires valid gender");
+            }
+        }
+
+        // If the COLUMN_PET_WEIGHT key is present,
+        // check that the weight value is valid.
+        if (values.containsKey(DbContract.PetsEntry.COLUMN_PET_WEIGHT)) {
+            // Check that the weight is greater than or equal to 0 kg
+            Integer weight = values.getAsInteger(DbContract.PetsEntry.COLUMN_PET_WEIGHT);
+            if (weight != null && weight < 0) {
+                throw new IllegalArgumentException("Pet requires valid weight");
+            }
+        }
+
         SQLiteDatabase database = mPetsDbHelper.getWritableDatabase();
         long rowID = database.insert(DbContract.PetsEntry.TABLE_NAME, null, values);
+
+        if (rowID == -1) {
+            Log.e(LOG_TAG, "Failed to insert row for " + uri);
+            return null;
+        }
+
+        // notify all listeners of changes:
+        getContext().getContentResolver().notifyChange(uri, null);
+
         return ContentUris.withAppendedId(uri, rowID);
     }
 
@@ -204,7 +250,10 @@ public class PetProvider extends ContentProvider {
         SQLiteDatabase database = mPetsDbHelper.getWritableDatabase();
         // Returns the number of database rows affected by the update statement
         int rowCount = database.update(DbContract.PetsEntry.TABLE_NAME, values, selection, selectionArgs);
-        getContext().getContentResolver().notifyChange(uri, null);
+        // notify all listeners of changes:
+        if (rowCount > 0) {
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
         return rowCount;
     }
 
