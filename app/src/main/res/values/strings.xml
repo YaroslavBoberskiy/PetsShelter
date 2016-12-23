@@ -63,6 +63,10 @@
 
     <string name="success_saving_pet_in_db">Pet saved with ID: </string>
 
+    <string name="success_updating_pet_in_db">Successfully updated rows: </string>
+
+    <string name="error_updating_pet_in_db">Error with updating pet </string>
+
     <string name="unknown_uri_query">Cannot query unknown URI </string>
 
     <string name="insertion_not_supported_for_uri">Insertion is not supported for </string>

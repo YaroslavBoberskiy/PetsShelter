@@ -60,6 +60,8 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
     private Uri currentPetUri;
 
+    private boolean isUpdateMode;
+
     /**
      * Gender of the pet. The possible values are:
      * 0 for unknown gender, 1 for male, 2 for female.
@@ -76,9 +78,11 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
         if (currentPetUri == null) {
             setTitle(getString(R.string.editor_activity_title_new_pet));
+            isUpdateMode = false;
         } else {
             setTitle(getString(R.string.editor_activity_title_edit_pet));
             getLoaderManager().initLoader(PET_LOADER, null, this);
+            isUpdateMode = true;
         }
 
         // Find all relevant views that we will need to read user input from
@@ -129,11 +133,22 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         });
     }
 
-    private void insertPet () {
+    private void savePet () {
         String petName = mNameEditText.getText().toString().trim();
         String petBreed = mBreedEditText.getText().toString().trim();
         int petGender = mGender;
-        int petWeight = Integer.parseInt(mWeightEditText.getText().toString().trim());
+        String weightString = mWeightEditText.getText().toString().trim();
+
+        // Check if EditText fields are not empty
+        if (TextUtils.isEmpty(petName) && TextUtils.isEmpty(petBreed) &&
+                petGender == PetsEntry.GENDER_UNKNOWN && TextUtils.isEmpty(weightString)) {
+            return;
+        }
+
+        int petWeight = 0;
+        if (!TextUtils.isEmpty(weightString)) {
+            petWeight = Integer.parseInt(weightString);
+        }
 
         // Create a new map of values, where column names are the keys
         ContentValues values = new ContentValues();
@@ -157,21 +172,33 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             throw new IllegalArgumentException("Pet requires a breed");
         }
 
-        if (weightCheck <= 0) {
-            throw new IllegalArgumentException("Weight can't be \"0\" or negative");
+        if (weightCheck < 0) {
+            throw new IllegalArgumentException("Weight can't be negative");
         }
 
-        Uri mNewPetUri = getContentResolver().insert(
-                PetsEntry.CONTENT_URI,   // the user dictionary content URI
-                values);                 // the values to insert
-
-        long newRowId = ContentUris.parseId(mNewPetUri);
-
-        if (newRowId == -1) {
-            Toast.makeText(this, R.string.error_saving_pet_in_db, Toast.LENGTH_SHORT).show();
+        if (isUpdateMode) {
+            int updatedRowCount = getContentResolver().update(currentPetUri, values, null, null);
+            if (updatedRowCount > 0) {
+                Toast.makeText(this, getString(R.string.success_updating_pet_in_db) + " " +
+                        updatedRowCount, Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, getString(R.string.error_updating_pet_in_db),
+                        Toast.LENGTH_SHORT).show();
+            }
         } else {
-            Toast.makeText(this, R.string.success_saving_pet_in_db + "" +
-                    newRowId, Toast.LENGTH_SHORT).show();
+            Uri mNewPetUri = getContentResolver().insert(
+                    PetsEntry.CONTENT_URI,   // the user dictionary content URI
+                    values);                 // the values to insert
+
+            long newRowId = ContentUris.parseId(mNewPetUri);
+
+            if (newRowId == -1) {
+                Toast.makeText(this, getString(R.string.error_saving_pet_in_db),
+                        Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, getString(R.string.success_saving_pet_in_db) + " " +
+                        newRowId, Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
@@ -189,7 +216,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         switch (item.getItemId()) {
             // Respond to a click on the "Save" menu option
             case R.id.action_save:
-                insertPet();
+                savePet();
                 finish();
                 return true;
             // Respond to a click on the "Delete" menu option
